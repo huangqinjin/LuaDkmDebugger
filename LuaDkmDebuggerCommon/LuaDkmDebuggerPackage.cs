@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Shell.Settings;
 using Task = System.Threading.Tasks.Task;
 using EnvDTE100;
 using EnvDTE80;
+#if !VS2015
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
@@ -17,6 +18,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Operations;
+#endif
 using Microsoft.VisualStudio.Debugger.Interop;
 using System.Diagnostics;
 using LuaDkmDebugger.ToolWindows;
@@ -269,6 +271,7 @@ namespace LuaDkmDebugger
 
                     MenuCommand menuItem = new MenuCommand((object sender, EventArgs args) =>
                     {
+#if !VS2015
                         JoinableTaskFactory.RunAsync(async () =>
                         {
                             ToolWindowPane window = await ShowToolWindowAsync(
@@ -277,6 +280,8 @@ namespace LuaDkmDebugger
                                 create: true,
                                 cancellationToken: DisposalToken);
                         });
+#else
+#endif
                     }, menuCommandID);
 
                     commandService.AddCommand(menuItem);
@@ -322,6 +327,8 @@ namespace LuaDkmDebugger
                 command.Checked = packageFlag;
             }
         }
+
+#if !VS2015
         public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
         {
             bool match = toolWindowType.Equals(Guid.Parse(ScriptListWindow.WindowGuidString));
@@ -338,10 +345,12 @@ namespace LuaDkmDebugger
         {
             return scriptListWindowState;
         }
+#endif
 
-        #endregion
+#endregion
     }
 
+#if !VS2015
     [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("Lua Data Tips Provider")]
     [ContentType("code++.Lua")]
@@ -497,6 +506,7 @@ namespace LuaDkmDebugger
             // This provider does not perform any cleanup.
         }
     }
+#endif
 
     [Guid("B1C83EED-ADA7-492D-8E41-D47D97315BED")]
     public class LuaDebuggerEventHandler : IVsCustomDebuggerEventHandler110

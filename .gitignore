@@ -10,6 +10,10 @@
 /Debug
 /LuaDebugHelper_x86/Debug
 /LuaDebugHelper_x86/Release
+/LuaDkmDebugger14/bin
+/LuaDkmDebugger14/obj
+*.VC.db
+*.VC.VC.opendb
 *.user
 *.ilk
 *.pdb

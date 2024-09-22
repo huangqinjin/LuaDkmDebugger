@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="LuaDkmDebugger14.08a497ab-97aa-4e2b-8aa7-49a70df57fba" Version="0.9.9" Language="en-US" Publisher="WheretIB" />
+        <DisplayName>C++ debugger extensions for Lua</DisplayName>
+        <Description xml:space="preserve">This extension adds integrated debugging for Lua scripts executing inside C++ applications with Lua library.</Description>
+        <License>license.txt</License>
+        <ReleaseNotes>https://raw.githubusercontent.com/WheretIB/LuaDkmDebugger/master/CHANGELOG.md</ReleaseNotes>
+        <Tags>lua, debugger</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0,15.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,15.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[14.0,15.0)" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0,)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Debugger" Version="[14.0,)" DisplayName="Visual Studio Debugger" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+        <Asset Type="DebuggerEngineExtension" Path="LuaDkmDebuggerComponent.vsdconfig"/>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    </Assets>
+</PackageManifest>
