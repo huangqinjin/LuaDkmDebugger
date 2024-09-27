@@ -292,7 +292,9 @@ namespace LuaDkmDebuggerComponent
 
         internal static LuaValueDataBase ReadValue(DkmProcess process, ulong address, BatchRead batch = null)
         {
-            int? typeTag = ReadTypeTag(process, address, out ulong tagAddress, out ulong valueAddress, batch);
+            ulong tagAddress;
+            ulong valueAddress;
+            int? typeTag = ReadTypeTag(process, address, out tagAddress, out valueAddress, batch);
 
             if (typeTag == null)
                 return null;
@@ -846,17 +848,17 @@ namespace LuaDkmDebuggerComponent
             return true;
         }
 
+        internal static bool Failed(string text, out string errorText_)
+        {
+            errorText_ = text;
+            return false;
+        }
+
         internal static bool TryWriteValue(DkmProcess process, DkmStackWalkFrame stackFrame, DkmInspectionSession inspectionSession, ulong tagAddress, ulong valueAddress, LuaValueDataBase value, out string errorText)
         {
             if (tagAddress == 0 || valueAddress == 0)
             {
                 errorText = "Target address is not available";
-                return false;
-            }
-
-            bool Failed(string text, out string errorText_)
-            {
-                errorText_ = text;
                 return false;
             }
 
@@ -883,8 +885,9 @@ namespace LuaDkmDebuggerComponent
                 errorText = null;
                 return true;
             }
-            else if (value is LuaValueDataBool sourceBool)
+            else if (value is LuaValueDataBool)
             {
+                var sourceBool = value as LuaValueDataBool;
                 if (LuaHelpers.luaVersion == LuaHelpers.luaVersionLuajit && Schema.Luajit.fullPointer)
                 {
                     uint? ljTypeTag = GetLuajitTag((int)(sourceBool.value ? LuaExtendedType.BooleanTrue : LuaExtendedType.Boolean)).GetValueOrDefault(0);
@@ -917,8 +920,9 @@ namespace LuaDkmDebuggerComponent
                 errorText = null;
                 return true;
             }
-            else if (value is LuaValueDataNumber sourceNumber)
+            else if (value is LuaValueDataNumber)
             {
+                var sourceNumber = value as LuaValueDataNumber;
                 if (sourceNumber.extendedType == GetFloatNumberExtendedType() || !LuaHelpers.HasIntegerNumberExtendedType())
                 {
                     // Write tag first here, unioned value will go over it when neccessary
@@ -944,8 +948,9 @@ namespace LuaDkmDebuggerComponent
                     return true;
                 }
             }
-            else if (value is LuaValueDataString sourceString)
+            else if (value is LuaValueDataString)
             {
+                var sourceString = value as LuaValueDataString;
                 // We have to allocate literal string
                 if (sourceString.targetAddress == 0)
                 {
@@ -1025,20 +1030,20 @@ namespace LuaDkmDebuggerComponent
             // Other types are all pointers, but we need to get target pointer from all of them
             ulong targetAddress = 0;
 
-            if (value is LuaValueDataLightUserData sourceLightUserData)
-                targetAddress = sourceLightUserData.value;
-            else if (value is LuaValueDataTable sourceTable)
-                targetAddress = sourceTable.targetAddress;
-            else if (value is LuaValueDataLuaFunction sourceLuaFunction)
-                targetAddress = sourceLuaFunction.targetAddress;
-            else if (value is LuaValueDataExternalFunction sourceExternalFunction)
-                targetAddress = sourceExternalFunction.targetAddress;
-            else if (value is LuaValueDataExternalClosure sourceExternalClosure)
-                targetAddress = sourceExternalClosure.targetAddress;
-            else if (value is LuaValueDataUserData sourceUserData)
-                targetAddress = sourceUserData.targetAddress;
-            else if (value is LuaValueDataThread sourceThread)
-                targetAddress = sourceThread.targetAddress;
+            if (value is LuaValueDataLightUserData)
+                targetAddress = (value as LuaValueDataLightUserData).value;
+            else if (value is LuaValueDataTable)
+                targetAddress = (value as LuaValueDataTable).targetAddress;
+            else if (value is LuaValueDataLuaFunction)
+                targetAddress = (value as LuaValueDataLuaFunction).targetAddress;
+            else if (value is LuaValueDataExternalFunction)
+                targetAddress = (value as LuaValueDataExternalFunction).targetAddress;
+            else if (value is LuaValueDataExternalClosure)
+                targetAddress = (value as LuaValueDataExternalClosure).targetAddress;
+            else if (value is LuaValueDataUserData)
+                targetAddress = (value as LuaValueDataUserData).targetAddress;
+            else if (value is LuaValueDataThread)
+                targetAddress = (value as LuaValueDataThread).targetAddress;
             else
                 return Failed($"Unknown value type {value.GetType()}", out errorText);
 
@@ -2850,9 +2855,11 @@ namespace LuaDkmDebuggerComponent
 
             var nativeTypeContext = metaTable.FetchMember(process, "__type");
 
-            if (nativeTypeContext is LuaValueDataTable nativeTypeContextTable)
+            if (nativeTypeContext is LuaValueDataTable)
             {
-                if (nativeTypeContextTable.value.FetchMember(process, "name") is LuaValueDataString nativeTypeContextName)
+                var nativeTypeContextTable = nativeTypeContext as LuaValueDataTable;
+                var nativeTypeContextName = nativeTypeContextTable.value.FetchMember(process, "name") as LuaValueDataString;
+                if (nativeTypeContextName != null)
                 {
                     if (pointerAtValueStart != 0)
                         return nativeTypeContextName.value;

@@ -21,6 +21,7 @@ namespace LuaDkmDebuggerComponent
                     return null;
 
                 // Check if Lua library is loaded
+                string _; //error;
                 ulong luaNewState = AttachmentHelpers.TryGetFunctionAddress(nativeModuleInstance, "lua_newstate", out _).GetValueOrDefault(0);
                 ulong luaLibNewState = AttachmentHelpers.TryGetFunctionAddress(nativeModuleInstance, "luaL_newstate", out _).GetValueOrDefault(0);
 

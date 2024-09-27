@@ -128,7 +128,8 @@ namespace LuaDkmDebuggerComponent
 
             if (valueAsString != null)
             {
-                if (!double.TryParse(valueAsString.value, out double result))
+                double result;
+                if (!double.TryParse(valueAsString.value, out result))
                     return null;
 
                 if ((double)(int)result == result)
@@ -153,19 +154,22 @@ namespace LuaDkmDebuggerComponent
                 {
                     var indexMetaTableValue = element.LoadValue(process);
 
-                    if (indexMetaTableValue is LuaValueDataTable indexMetaTableValueTable)
+                    if (indexMetaTableValue is LuaValueDataTable)
                     {
+                        var indexMetaTableValueTable = indexMetaTableValue as LuaValueDataTable;
                         return LookupTableElement(indexMetaTableValueTable, index);
                     }
-                    else if (indexMetaTableValue is LuaValueDataLuaFunction indexMetaTableValueLuaFunction)
+                    else if (indexMetaTableValue is LuaValueDataLuaFunction)
                     {
+                        var indexMetaTableValueLuaFunction = indexMetaTableValue as LuaValueDataLuaFunction;
                         if (tableValue != null)
                             return EvaluateCall(new LuaValueDataBase[] { indexMetaTableValueLuaFunction, tableValue, index });
                         else
                             return Report("Cannot evaluate __index Lua function");
                     }
-                    else if (indexMetaTableValue is LuaValueDataExternalClosure indexMetaTableValueExternalClosure)
+                    else if (indexMetaTableValue is LuaValueDataExternalClosure)
                     {
+                        var indexMetaTableValueExternalClosure = indexMetaTableValue as LuaValueDataExternalClosure;
                         if (tableValue != null)
                             return EvaluateCall(new LuaValueDataBase[] { indexMetaTableValueExternalClosure, tableValue, index });
                         else
@@ -386,9 +390,12 @@ namespace LuaDkmDebuggerComponent
             {
                 LuaValueDataBase arg = args[i];
 
-                LuaHelpers.GetValueAddressParts(process, top + (ulong)i * LuaHelpers.GetValueSize(process), out ulong tagAddress, out ulong valueAddress);
+                ulong tagAddress;
+                ulong valueAddress;
+                LuaHelpers.GetValueAddressParts(process, top + (ulong)i * LuaHelpers.GetValueSize(process), out tagAddress, out valueAddress);
 
-                if (!LuaHelpers.TryWriteValue(process, stackFrame, inspectionSession, tagAddress, valueAddress, arg, out string errorText))
+                string errorText;
+                if (!LuaHelpers.TryWriteValue(process, stackFrame, inspectionSession, tagAddress, valueAddress, arg, out errorText))
                 {
                     DkmCustomMessage.Create(process.Connection, process, MessageToRemote.guid, MessageToRemote.resumeBreakpoints, null, null).SendLower();
 
@@ -472,7 +479,8 @@ namespace LuaDkmDebuggerComponent
                     while (curr < expression.Length && (char.IsDigit(expression[curr]) || ((int)char.ToLower(expression[curr]) - (int)'a' < 6)))
                         curr++;
 
-                    if (!int.TryParse(expression.Substring(pos + 2, curr - (pos + 2)), System.Globalization.NumberStyles.AllowHexSpecifier, System.Globalization.CultureInfo.InvariantCulture, out int intResult))
+                    int intResult;
+                    if (!int.TryParse(expression.Substring(pos + 2, curr - (pos + 2)), System.Globalization.NumberStyles.AllowHexSpecifier, System.Globalization.CultureInfo.InvariantCulture, out intResult))
                         return null;
 
                     pos = curr;
@@ -503,7 +511,8 @@ namespace LuaDkmDebuggerComponent
                         curr++;
                 }
 
-                if (!double.TryParse(expression.Substring(pos, curr - pos), out double result))
+                double result;
+                if (!double.TryParse(expression.Substring(pos, curr - pos), out result))
                     return null;
 
                 pos = curr;
@@ -523,28 +532,33 @@ namespace LuaDkmDebuggerComponent
                 if (name == null)
                     return Report("Failed to find member name");
 
-                if (value is LuaValueDataTable table)
+                if (value is LuaValueDataTable)
                 {
+                    var table = value as LuaValueDataTable;
                     value = LookupTableMember(table, table.value, name);
                 }
-                else if (value is LuaValueDataUserData userData)
+                else if (value is LuaValueDataUserData)
                 {
+                    var userData = value as LuaValueDataUserData;
                     LuaTableData metaTable = userData.value.LoadMetaTable(process);
 
                     if (metaTable != null)
                     {
                         var indexMetaTableValue = LookupTableMember(null, metaTable, "__index");
 
-                        if (indexMetaTableValue is LuaValueDataTable indexMetaTableValueTable)
+                        if (indexMetaTableValue is LuaValueDataTable)
                         {
+                            var indexMetaTableValueTable = indexMetaTableValue as LuaValueDataTable;
                             value = LookupTableMember(indexMetaTableValueTable, indexMetaTableValueTable.value, name);
                         }
-                        else if (indexMetaTableValue is LuaValueDataLuaFunction indexMetaTableValueLuaFunction)
+                        else if (indexMetaTableValue is LuaValueDataLuaFunction)
                         {
+                            var indexMetaTableValueLuaFunction = indexMetaTableValue as LuaValueDataLuaFunction;
                             value = EvaluateCall(new LuaValueDataBase[] { indexMetaTableValueLuaFunction, userData, new LuaValueDataString(name) });
                         }
-                        else if (indexMetaTableValue is LuaValueDataExternalClosure indexMetaTableValueExternalClosure)
+                        else if (indexMetaTableValue is LuaValueDataExternalClosure)
                         {
+                            var indexMetaTableValueExternalClosure = indexMetaTableValue as LuaValueDataExternalClosure;
                             value = EvaluateCall(new LuaValueDataBase[] { indexMetaTableValueExternalClosure, userData, new LuaValueDataString(name) });
                         }
                     }
@@ -640,7 +654,8 @@ namespace LuaDkmDebuggerComponent
 
             if (pos < expression.Length && char.IsDigit(expression[pos]))
             {
-                double? result = TryParseNumber(out bool canBeAnInteger);
+                bool canBeAnInteger;
+                double? result = TryParseNumber(out canBeAnInteger);
 
                 if (result == null)
                     return Report("Failed to parse a number");
@@ -733,8 +748,9 @@ namespace LuaDkmDebuggerComponent
                 if (process == null)
                     return Report("Can't load value - process memory is not available");
 
-                if (lhs is LuaValueDataTable table)
+                if (lhs is LuaValueDataTable)
                 {
+                    var table = lhs as LuaValueDataTable;
                     var arrayElements = table.value.GetArrayElements(process);
 
                     if (arrayElements == null || arrayElements.Count == 0)
@@ -751,7 +767,8 @@ namespace LuaDkmDebuggerComponent
                     return new LuaValueDataNumber(arrayElements.Count - start);
                 }
 
-                if (lhs is LuaValueDataString str)
+                var str = lhs as LuaValueDataString;
+                if (str != null)
                     return new LuaValueDataNumber(str.value.Length);
 
                 return Report("Value is not a table or a string");
@@ -1043,7 +1060,8 @@ namespace LuaDkmDebuggerComponent
                     return Report("lhs value cannot be modified");
 
                 // Try to update the value
-                if (!LuaHelpers.TryWriteValue(process, stackFrame, inspectionSession, lhs.tagAddress, lhs.originalAddress, rhs, out string errorText))
+                string errorText;
+                if (!LuaHelpers.TryWriteValue(process, stackFrame, inspectionSession, lhs.tagAddress, lhs.originalAddress, rhs, out errorText))
                     return Report(errorText);
 
                 rhs.evaluationFlags |= DkmEvaluationResultFlags.SideEffect;

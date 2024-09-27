@@ -106,7 +106,8 @@ namespace LuaDkmDebuggerComponent
 
         internal static ulong? TryEvaluateAddressExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
         {
-            if (ExecuteExpression(expression, inspectionSession, thread, input, flags, true, out ulong address) != null)
+            ulong address;
+            if (ExecuteExpression(expression, inspectionSession, thread, input, flags, true, out address) != null)
                 return address;
 
             return null;
@@ -114,12 +115,14 @@ namespace LuaDkmDebuggerComponent
 
         internal static long? TryEvaluateNumberExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
         {
+            ulong _;
             string result = ExecuteExpression(expression, inspectionSession, thread, input, flags, true, out _);
 
             if (result == null)
                 return null;
 
-            if (long.TryParse(result, out long value))
+            long value;
+            if (long.TryParse(result, out value))
                 return value;
 
             return null;
@@ -127,6 +130,7 @@ namespace LuaDkmDebuggerComponent
 
         internal static string TryEvaluateStringExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
         {
+            ulong _;
             return ExecuteExpression(expression + ",sb", inspectionSession, thread, input, flags, false, out _);
         }
 
@@ -320,7 +324,11 @@ namespace LuaDkmDebuggerComponent
             if (address == 0)
                 return DkmFailedEvaluationResult.Create(inspectionContext, stackFrame, name, fullName, "Null pointer access", DkmEvaluationResultFlags.Invalid, null);
 
-            string value = EvaluateValueAtAddress(process, address, inspectionContext.Radix, out string editableValue, ref flags, out DkmDataAddress dataAddress, out string type, out LuaValueDataBase luaValueData);
+            string editableValue;
+            DkmDataAddress dataAddress;
+            string type;
+            LuaValueDataBase luaValueData;
+            string value = EvaluateValueAtAddress(process, address, inspectionContext.Radix, out editableValue, ref flags, out dataAddress, out type, out luaValueData);
 
             if (value == null)
                 return DkmFailedEvaluationResult.Create(inspectionContext, stackFrame, name, fullName, "Failed to read value", DkmEvaluationResultFlags.Invalid, null);
@@ -346,7 +354,10 @@ namespace LuaDkmDebuggerComponent
             if (luaValue == null)
                 return DkmFailedEvaluationResult.Create(inspectionContext, stackFrame, name, fullName, "Null pointer access", DkmEvaluationResultFlags.Invalid, null);
 
-            string value = EvaluateValueAtLuaValue(process, luaValue, inspectionContext.Radix, out string editableValue, ref flags, out DkmDataAddress dataAddress, out string type);
+            string editableValue;
+            DkmDataAddress dataAddress;
+            string type;
+            string value = EvaluateValueAtLuaValue(process, luaValue, inspectionContext.Radix, out editableValue, ref flags, out dataAddress, out type);
 
             if (value == null)
                 return DkmFailedEvaluationResult.Create(inspectionContext, stackFrame, name, fullName, "Failed to read value", DkmEvaluationResultFlags.Invalid, null);
@@ -369,8 +380,9 @@ namespace LuaDkmDebuggerComponent
         {
             DkmEvaluationResult result = ExecuteRawExpression(expression, inspectionContext.InspectionSession, inspectionContext.Thread, stackFrame, inspectionContext.Thread.Process.GetNativeRuntimeInstance(), DkmEvaluationFlags.TreatAsExpression);
 
-            if (result is DkmSuccessEvaluationResult success)
+            if (result is DkmSuccessEvaluationResult)
             {
+                var success = result as DkmSuccessEvaluationResult;
                 DkmSuccessEvaluationResult renamedResult;
 #if !VS2015
                 bool hasRefreshButtonText = true;
@@ -393,8 +405,9 @@ namespace LuaDkmDebuggerComponent
 
                 return renamedResult;
             }
-            else if (result is DkmFailedEvaluationResult faliure)
+            else if (result is DkmFailedEvaluationResult)
             {
+                var faliure = result as DkmFailedEvaluationResult;
                 var renamedResult = DkmFailedEvaluationResult.Create(faliure.InspectionContext, faliure.StackFrame, name, faliure.FullName, faliure.ErrorMessage, faliure.Flags, faliure.Type, faliure.Category, null);
 
                 result.Close();
@@ -454,7 +467,10 @@ namespace LuaDkmDebuggerComponent
                 var nodeKey = node.LoadKey(process, value.batchNodeElementData);
 
                 DkmEvaluationResultFlags flags = DkmEvaluationResultFlags.None;
-                string name = EvaluateValueAtLuaValue(process, nodeKey, 10, out _, ref flags, out _, out _);
+                string editableValue;
+                DkmDataAddress dataAddress;
+                string type;
+                string name = EvaluateValueAtLuaValue(process, nodeKey, 10, out editableValue, ref flags, out dataAddress, out type);
 
                 var keyString = nodeKey as LuaValueDataString;
 

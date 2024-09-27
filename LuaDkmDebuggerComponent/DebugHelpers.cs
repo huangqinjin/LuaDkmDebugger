@@ -97,7 +97,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -116,7 +117,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -135,7 +137,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -154,7 +157,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -173,7 +177,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -192,7 +197,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -211,7 +217,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -230,7 +237,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;
@@ -309,7 +317,8 @@ namespace LuaDkmDebuggerComponent
 
             try
             {
-                if (batch != null && batch.TryRead(address, variableAddressData.Length, out byte[] batchData))
+                byte[] batchData;
+                if (batch != null && batch.TryRead(address, variableAddressData.Length, out batchData))
                     variableAddressData = batchData;
                 else if (process.ReadMemory(address, DkmReadMemoryFlags.None, variableAddressData) == 0)
                     return null;

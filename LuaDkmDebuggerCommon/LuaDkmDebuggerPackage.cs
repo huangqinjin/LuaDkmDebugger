@@ -131,13 +131,15 @@ namespace LuaDkmDebugger
 
                     OleMenuCommand menuItem = new OleMenuCommand((object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Visible = false;
                     }, menuCommandID);
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Visible = false;
                     };
 
@@ -156,7 +158,8 @@ namespace LuaDkmDebugger
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Checked = attachOnLaunch;
                     };
 
@@ -176,7 +179,8 @@ namespace LuaDkmDebugger
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Checked = breakOnError;
                     };
 
@@ -196,7 +200,8 @@ namespace LuaDkmDebugger
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Checked = useSchema;
                     };
 
@@ -216,7 +221,8 @@ namespace LuaDkmDebugger
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Checked = releaseDebugLogs;
                     };
 
@@ -236,7 +242,8 @@ namespace LuaDkmDebugger
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Checked = showHiddenFrames;
                     };
 
@@ -256,7 +263,8 @@ namespace LuaDkmDebugger
 
                     menuItem.BeforeQueryStatus += (object sender, EventArgs args) =>
                     {
-                        if (sender is OleMenuCommand command)
+                        var command = sender as OleMenuCommand;
+                        if (command != null)
                             command.Checked = evalFuncOnHover;
                     };
 
@@ -308,7 +316,8 @@ namespace LuaDkmDebugger
 
         private void HandleToggleMenuItem(object sender, EventArgs args, string name, ref bool componentFlag, ref bool packageFlag)
         {
-            if (sender is OleMenuCommand command)
+            var command = sender as OleMenuCommand;
+            if (command != null)
             {
                 packageFlag = !packageFlag;
 
@@ -601,7 +610,8 @@ namespace LuaDkmDebugger
 
                     foreach (var breakpoint in debugger.Breakpoints)
                     {
-                        if (breakpoint is EnvDTE90a.Breakpoint3 breakpoint3)
+                        var breakpoint3 = breakpoint as EnvDTE90a.Breakpoint3;
+                        if (breakpoint != null)
                         {
                             if (!breakpoint3.Enabled)
                                 continue;
@@ -701,9 +711,11 @@ namespace LuaDkmDebugger
                         package.scriptListWindowState.statusText2 = statusTextMessage.content;
                     }
 
-                    if (package.FindToolWindow(typeof(ScriptListWindow), 0, false) is ScriptListWindow scriptListWindow)
+                    var scriptListWindow = package.FindToolWindow(typeof(ScriptListWindow), 0, false) as ScriptListWindow;
+                    if (scriptListWindow != null)
                     {
-                        if (scriptListWindow.Content is ScriptListWindowControl scriptListWindowControl)
+                        var scriptListWindowControl = scriptListWindow.Content as ScriptListWindowControl;
+                        if (scriptListWindowControl != null)
                         {
                             scriptListWindowControl.StatusText1.Text = package.scriptListWindowState.statusText1;
                             scriptListWindowControl.StatusText2.Text = package.scriptListWindowState.statusText2;

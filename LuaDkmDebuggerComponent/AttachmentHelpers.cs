@@ -138,7 +138,10 @@ namespace LuaDkmDebuggerComponent
         public static int AdjustAccessControlListForUwp(string dllPath)
         {
             // Get current Access Control List
-            int errorCode = GetNamedSecurityInfo(dllPath, SE_OBJECT_TYPE.SE_FILE_OBJECT, SecurityInfos.DiscretionaryAcl, out _, out _, out IntPtr currentAcl, out _, out IntPtr securityDescriptor);
+            IntPtr _;
+            IntPtr currentAcl;
+            IntPtr securityDescriptor;
+            int errorCode = GetNamedSecurityInfo(dllPath, SE_OBJECT_TYPE.SE_FILE_OBJECT, SecurityInfos.DiscretionaryAcl, out _, out _, out currentAcl, out _, out securityDescriptor);
 
             if (errorCode != 0)
             {
@@ -148,7 +151,8 @@ namespace LuaDkmDebuggerComponent
             }
 
             // sid for all application packages
-            if (ConvertStringSidToSid("S-1-15-2-1", out IntPtr sid) == 0)
+            IntPtr sid;
+            if (ConvertStringSidToSid("S-1-15-2-1", out sid) == 0)
             {
                 Debug.WriteLine("Call to 'ConvertStringSidToSidA' failed");
 
@@ -170,7 +174,8 @@ namespace LuaDkmDebuggerComponent
             };
 
             // Set new access entry in the Access Control List
-            errorCode = SetEntriesInAcl(1, ref access, currentAcl, out IntPtr updatedAcl);
+            IntPtr updatedAcl;
+            errorCode = SetEntriesInAcl(1, ref access, currentAcl, out updatedAcl);
 
             if (errorCode != 0)
             {
@@ -232,7 +237,8 @@ namespace LuaDkmDebuggerComponent
                 return null;
             }
 
-            diaSession.findChildren(null, SymTagEnum.SymTagExe, null, 0, out IDiaEnumSymbols exeSymEnum);
+            IDiaEnumSymbols exeSymEnum;
+            diaSession.findChildren(null, SymTagEnum.SymTagExe, null, 0, out exeSymEnum);
 
             if (exeSymEnum.count != 1)
             {
@@ -253,7 +259,8 @@ namespace LuaDkmDebuggerComponent
 
         internal static IDiaSymbol TryGetDiaSymbol(IDiaSymbol symbol, SymTagEnum symTag, string name, out string error)
         {
-            symbol.findChildren(symTag, name, 1, out IDiaEnumSymbols enumSymbols);
+            IDiaEnumSymbols enumSymbols;
+            symbol.findChildren(symTag, name, 1, out enumSymbols);
 
             if (enumSymbols.count != 1)
             {
@@ -380,7 +387,8 @@ namespace LuaDkmDebuggerComponent
 
         internal static Guid? CreateHelperFunctionBreakpoint(DkmNativeModuleInstance nativeModuleInstance, string functionName)
         {
-            var functionAddress = TryGetFunctionAddressAtDebugStart(nativeModuleInstance, functionName, out string error);
+            string error;
+            var functionAddress = TryGetFunctionAddressAtDebugStart(nativeModuleInstance, functionName, out error);
 
             if (functionAddress != null)
             {
@@ -486,7 +494,8 @@ namespace LuaDkmDebuggerComponent
 
         internal static DkmRuntimeInstructionBreakpoint CreateTargetFunctionBreakpointObjectAtDebugStart(DkmProcess process, DkmModuleInstance moduleWithLoadedLua, string name, string desc, out ulong breakAddress, bool enabled)
         {
-            var address = TryGetFunctionAddressAtDebugStart(moduleWithLoadedLua, name, out string error);
+            string error;
+            var address = TryGetFunctionAddressAtDebugStart(moduleWithLoadedLua, name, out error);
 
             if (address != null)
             {
@@ -523,7 +532,8 @@ namespace LuaDkmDebuggerComponent
 
         internal static Guid? CreateTargetFunctionBreakpointAtDebugEnd(DkmProcess process, DkmModuleInstance moduleWithLoadedLua, string name, string desc, out ulong breakAddress)
         {
-            var address = TryGetFunctionAddressAtDebugEnd(moduleWithLoadedLua, name, out string error);
+            string error;
+            var address = TryGetFunctionAddressAtDebugEnd(moduleWithLoadedLua, name, out error);
 
             if (address != null)
             {

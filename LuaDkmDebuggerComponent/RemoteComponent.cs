@@ -375,7 +375,10 @@ namespace LuaDkmDebuggerComponent
                     }
                 }
 
-                thread.GetCurrentFrameInfo(out ulong retAddr, out ulong frameBase, out ulong vframe);
+                ulong retAddr;
+                ulong frameBase;
+                ulong vframe;
+                thread.GetCurrentFrameInfo(out retAddr, out frameBase, out vframe);
 
                 var data = new SupportBreakpointHitMessage
                 {
@@ -392,8 +395,9 @@ namespace LuaDkmDebuggerComponent
 
                 if (response?.MessageCode == MessageToRemote.throwException)
                 {
-                    if (runtimeBreakpoint is DkmRuntimeInstructionBreakpoint runtimeInstructionBreakpoint)
+                    if (runtimeBreakpoint is DkmRuntimeInstructionBreakpoint)
                     {
+                        var runtimeInstructionBreakpoint = runtimeBreakpoint as DkmRuntimeInstructionBreakpoint;
                         var exceptionInformation = DkmCustomExceptionInformation.Create(processData.runtimeInstance, Guids.luaExceptionGuid, thread, runtimeInstructionBreakpoint.InstructionAddress, "LuaError", 0, DkmExceptionProcessingStage.Thrown | DkmExceptionProcessingStage.UserVisible | DkmExceptionProcessingStage.Unhandled, null, new ReadOnlyCollection<byte>(response.Parameter1 as byte[]));
 
                         exceptionInformation.OnDebugMonitorException();
@@ -782,8 +786,9 @@ namespace LuaDkmDebuggerComponent
                 return;
             }
 
-            if (result is LuaValueDataBool resultBool)
+            if (result is LuaValueDataBool)
             {
+                var resultBool = result as LuaValueDataBool;
                 inspectionSession.Close();
 
                 stop = resultBool.value;

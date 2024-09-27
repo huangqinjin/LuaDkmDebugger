@@ -34,9 +34,11 @@ namespace LuaDkmDebugger.ToolWindows
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (sender is ListViewItem row)
+            var row = sender as ListViewItem;
+            if (row != null)
             {
-                if (row.Content is ScriptEntry scriptEntry)
+                var scriptEntry = row.Content as ScriptEntry;
+                if (scriptEntry != null)
                 {
                     try
                     {
@@ -66,7 +68,8 @@ namespace LuaDkmDebugger.ToolWindows
         private void ListViewItem_ColumnClick(object sender, RoutedEventArgs args)
         {
             // WPF doesn't provide auto-sortable lists...
-            if (args.OriginalSource is GridViewColumnHeader headerClicked)
+            var headerClicked = args.OriginalSource as GridViewColumnHeader;
+            if (headerClicked != null)
             {
                 if (headerClicked.Role != GridViewColumnHeaderRole.Padding)
                 {
@@ -92,7 +95,8 @@ namespace LuaDkmDebugger.ToolWindows
             CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(ScriptList.ItemsSource);
             view.Filter = (item) =>
             {
-                if (item is ScriptEntry scriptEntry)
+                var scriptEntry = item as ScriptEntry;
+                if (scriptEntry != null)
                     return scriptEntry.name.Contains(SearchTerm.Text) || scriptEntry.path.Contains(SearchTerm.Text);
 
                 return true;

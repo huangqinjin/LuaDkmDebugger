@@ -255,7 +255,7 @@ namespace LuaDkmDebuggerComponent
 
             log.Debug($"Loading configuration data");
 
-            bool TryLoad(string path)
+            Func<string, bool> TryLoad = (string path) =>
             {
                 if (File.Exists(path))
                 {
@@ -274,7 +274,7 @@ namespace LuaDkmDebuggerComponent
                 }
 
                 return false;
-            }
+            };
 
             string pathA = $"{Path.GetDirectoryName(process.Path)}\\";
 
@@ -515,7 +515,7 @@ namespace LuaDkmDebuggerComponent
                     SendVersionNotification(process, processData);
                 }
 
-                string GetLuaFunctionName(ulong currCallInfoAddress, ulong prevCallInfoAddress, ulong closureAddress)
+                Func<ulong, ulong, ulong, string> GetLuaFunctionName = (ulong currCallInfoAddress, ulong prevCallInfoAddress, ulong closureAddress) =>
                 {
                     if (processData.scratchMemory == 0)
                         return null;
@@ -560,9 +560,9 @@ namespace LuaDkmDebuggerComponent
                     }
 
                     return null;
-                }
+                };
 
-                DkmStackWalkFrame GetLuaFunctionStackWalkFrame(ulong callInfoAddress, LuaFunctionCallInfoData callInfoData, LuaValueDataLuaFunction callLuaFunction, string functionName)
+                Func<ulong, LuaFunctionCallInfoData, LuaValueDataLuaFunction, string, DkmStackWalkFrame> GetLuaFunctionStackWalkFrame = (ulong callInfoAddress, LuaFunctionCallInfoData callInfoData, LuaValueDataLuaFunction callLuaFunction, string functionName) =>
                 {
                     var currFunctionData = callLuaFunction.value.ReadFunction(process);
 
@@ -657,7 +657,7 @@ namespace LuaDkmDebuggerComponent
                     }
 
                     return null;
-                }
+                };
 
                 if (LuaHelpers.luaVersion == 501)
                 {
@@ -1130,7 +1130,9 @@ namespace LuaDkmDebuggerComponent
                 DkmCustomMessage.Create(process.Connection, process, MessageToRemote.guid, MessageToRemote.pauseBreakpoints, null, null).SendLower();
 
                 int frameNum = 0;
-                ulong frameAddress = LuajitHelpers.FindDebugFrame(process, luajitStateData, frameNum, out int frameSize, out int debugFrameIndex);
+                int frameSize;
+                int debugFrameIndex;
+                ulong frameAddress = LuajitHelpers.FindDebugFrame(process, luajitStateData, frameNum, out frameSize, out debugFrameIndex);
 
                 var startTime = DateTime.Now.Ticks / 10000.0;
                 bool timeout = false;
@@ -1172,7 +1174,7 @@ namespace LuaDkmDebuggerComponent
 
                                 if (callLuaFunction != null)
                                 {
-                                    void RegisterMissingScript()
+                                    Action RegisterMissingScript = () =>
                                     {
                                         var currFunctionData = callLuaFunction.value.ReadFunction(process);
 
@@ -1216,7 +1218,7 @@ namespace LuaDkmDebuggerComponent
 
                                             message.SendToVsService(Guids.luaVsPackageComponentGuid, false);
                                         }
-                                    }
+                                    };
 
                                     RegisterMissingScript();
 
@@ -1486,7 +1488,8 @@ namespace LuaDkmDebuggerComponent
             if (scriptSource?.resolvedFileName != null)
                 return scriptSource.resolvedFileName;
 
-            string filePath = TryFindSourcePath(process.Path, processData, source, scriptSource?.scriptContent, true, out string loadStatus);
+            string loadStatus;
+            string filePath = TryFindSourcePath(process.Path, processData, source, scriptSource?.scriptContent, true, out loadStatus);
 
             if (scriptSource != null)
                 scriptSource.resolvedFileName = filePath;
@@ -1615,7 +1618,10 @@ namespace LuaDkmDebuggerComponent
                 return;
             }
 
-            GetEvaluationSessionData(process, inspectionContext.InspectionSession, frameData, out LuaFunctionCallInfoData callInfoData, out LuaFunctionData functionData, out LuaClosureData closureData);
+            LuaFunctionCallInfoData callInfoData;
+            LuaFunctionData functionData;
+            LuaClosureData closureData;
+            GetEvaluationSessionData(process, inspectionContext.InspectionSession, frameData, out callInfoData, out functionData, out closureData);
 
             ExpressionEvaluation evaluation = new ExpressionEvaluation(process, stackFrame, inspectionContext.InspectionSession, functionData, callInfoData.stackBaseAddress, closureData);
 
@@ -1956,7 +1962,10 @@ namespace LuaDkmDebuggerComponent
                 return;
             }
 
-            GetEvaluationSessionData(process, inspectionContext.InspectionSession, frameData, out LuaFunctionCallInfoData callInfoData, out LuaFunctionData functionData, out _);
+            LuaFunctionCallInfoData callInfoData;
+            LuaFunctionData functionData;
+            LuaClosureData closureData;
+            GetEvaluationSessionData(process, inspectionContext.InspectionSession, frameData, out callInfoData, out functionData, out closureData);
 
             var frameLocalsEnumData = new LuaFrameLocalsEnumData
             {
@@ -2279,6 +2288,8 @@ namespace LuaDkmDebuggerComponent
 
             if (evalData.luaValueData as LuaValueDataBool != null)
             {
+                int intValue;
+
                 if (value == "true")
                 {
                     if (LuaHelpers.luaVersion == LuaHelpers.luaVersionLuajit)
@@ -2327,7 +2338,7 @@ namespace LuaDkmDebuggerComponent
 
                     return;
                 }
-                else if (int.TryParse(value, out int intValue))
+                else if (int.TryParse(value, out intValue))
                 {
                     if (LuaHelpers.luaVersion == LuaHelpers.luaVersionLuajit)
                     {
@@ -2358,7 +2369,8 @@ namespace LuaDkmDebuggerComponent
 
             if (evalData.luaValueData as LuaValueDataLightUserData != null)
             {
-                if (ulong.TryParse(value, out ulong ulongValue))
+                ulong ulongValue;
+                if (ulong.TryParse(value, out ulongValue))
                 {
                     if (LuaHelpers.luaVersion == LuaHelpers.luaVersionLuajit)
                     {
@@ -2382,7 +2394,8 @@ namespace LuaDkmDebuggerComponent
             {
                 if (LuaHelpers.HasIntegerNumberExtendedType() && (evalData.luaValueData as LuaValueDataNumber).extendedType == LuaHelpers.GetIntegerNumberExtendedType())
                 {
-                    if (int.TryParse(value, out int intValue))
+                    int intValue;
+                    if (int.TryParse(value, out intValue))
                     {
                         if (LuaHelpers.luaVersion == LuaHelpers.luaVersionLuajit)
                         {
@@ -2403,7 +2416,8 @@ namespace LuaDkmDebuggerComponent
                 }
                 else
                 {
-                    if (double.TryParse(value, out double doubleValue))
+                    double doubleValue;
+                    if (double.TryParse(value, out doubleValue))
                     {
                         if (LuaHelpers.luaVersion == LuaHelpers.luaVersionLuajit)
                         {
@@ -2563,11 +2577,12 @@ namespace LuaDkmDebuggerComponent
                         if (source.Value.resolvedFileName == null)
                         {
                             var scriptSource = processData.symbolStore.FetchScriptSource(source.Key);
+                            string loadStatus;
 
                             if (scriptSource?.resolvedFileName != null)
                                 source.Value.resolvedFileName = scriptSource.resolvedFileName;
                             else
-                                source.Value.resolvedFileName = TryFindSourcePath(process.Path, processData, source.Key, scriptSource?.scriptContent, true, out string loadStatus);
+                                source.Value.resolvedFileName = TryFindSourcePath(process.Path, processData, source.Key, scriptSource?.scriptContent, true, out loadStatus);
 
                             if (source.Value.resolvedFileName != null)
                                 log.Debug($"IDkmSymbolDocumentCollectionQuery.FindDocuments Resolved {source.Value.sourceFileName} to {source.Value.resolvedFileName}");
@@ -2615,7 +2630,8 @@ namespace LuaDkmDebuggerComponent
 
                             if (script.Value.resolvedFileName == null)
                             {
-                                script.Value.resolvedFileName = TryFindSourcePath(process.Path, processData, script.Key, script.Value.scriptContent, true, out string loadStatus);
+                                string loadStatus;
+                                script.Value.resolvedFileName = TryFindSourcePath(process.Path, processData, script.Key, script.Value.scriptContent, true, out loadStatus);
 
                                 if (script.Value.resolvedFileName != null)
                                     log.Debug($"IDkmSymbolDocumentCollectionQuery.FindDocuments Resolved {script.Value.sourceFileName} to {script.Value.resolvedFileName}");
@@ -2723,7 +2739,10 @@ namespace LuaDkmDebuggerComponent
 
                 foreach (var el in documentData.source.knownFunctions)
                 {
-                    if (FindFunctionInstructionForLine(process, el.Value, textSpan.StartLine, textSpan.EndLine, out LuaFunctionData luaFunctionData, out int instructionPointer, out int line))
+                    LuaFunctionData luaFunctionData;
+                    int instructionPointer;
+                    int line;
+                    if (FindFunctionInstructionForLine(process, el.Value, textSpan.StartLine, textSpan.EndLine, out luaFunctionData, out instructionPointer, out line))
                     {
                         var sourceFileId = DkmSourceFileId.Create(resolvedDocument.DocumentName, null, null, null);
 
@@ -2826,6 +2845,7 @@ namespace LuaDkmDebuggerComponent
 
             if (nativeModuleInstance != null)
             {
+                ulong _; //breakAddress;
                 var process = moduleInstance.Process;
 
 #if DEBUG
@@ -2897,14 +2917,16 @@ namespace LuaDkmDebuggerComponent
                     }
                     else
                     {
-                        if (AttachmentHelpers.TryGetFunctionAddress(nativeModuleInstance, "lua_newstate", out string errorA).GetValueOrDefault(0) != 0 || AttachmentHelpers.TryGetFunctionAddress(nativeModuleInstance, "luaL_newstate", out string errorB).GetValueOrDefault(0) != 0)
+                        string errorA;
+                        string errorB;
+                        if (AttachmentHelpers.TryGetFunctionAddress(nativeModuleInstance, "lua_newstate", out errorA).GetValueOrDefault(0) != 0 || AttachmentHelpers.TryGetFunctionAddress(nativeModuleInstance, "luaL_newstate", out errorB).GetValueOrDefault(0) != 0)
                         {
                             log.Debug("Found Lua library (from an IDE component)");
 
                             processData.moduleWithLoadedLua = nativeModuleInstance;
 
-                            processData.executionStartAddress = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(processData.moduleWithLoadedLua, "luaV_execute", out _).GetValueOrDefault(0);
-                            processData.executionEndAddress = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(processData.moduleWithLoadedLua, "luaV_execute", out _).GetValueOrDefault(0);
+                            processData.executionStartAddress = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(processData.moduleWithLoadedLua, "luaV_execute", out errorA).GetValueOrDefault(0);
+                            processData.executionEndAddress = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(processData.moduleWithLoadedLua, "luaV_execute", out errorB).GetValueOrDefault(0);
                         }
                         else
                         {
@@ -3277,7 +3299,8 @@ namespace LuaDkmDebuggerComponent
 
                             processData.breakpointLuaRuntimeError = AttachmentHelpers.CreateTargetFunctionBreakpointAtDebugStart(process, processData.moduleWithLoadedLua, "lj_err_run", "LuaJIT runtime error", out _).GetValueOrDefault(Guid.Empty);
 
-                            processData.breakpointLuaThrowAddress = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(processData.moduleWithLoadedLua, "lj_err_throw", out string _).GetValueOrDefault(0);
+                            string error;
+                            processData.breakpointLuaThrowAddress = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(processData.moduleWithLoadedLua, "lj_err_throw", out error).GetValueOrDefault(0);
                             processData.breakpointLuaThrow = AttachmentHelpers.CreateTargetFunctionBreakpointObjectAtDebugStart(process, processData.moduleWithLoadedLua, "lj_err_throw", "LuaJIT error throw", out processData.breakpointLuaThrowAddress, false);
 
                             processData.breakpointLuaThreadCreateExternalStart = AttachmentHelpers.CreateTargetFunctionBreakpointAtDebugStart(process, processData.moduleWithLoadedLua, "luaL_newstate", "Lua thread creation (lib @ start)", out _).GetValueOrDefault(Guid.Empty);
@@ -3508,8 +3531,9 @@ namespace LuaDkmDebuggerComponent
             {
                 foreach (var pendingBreakpoint in process.GetPendingBreakpoints())
                 {
-                    if (pendingBreakpoint is DkmPendingFileLineBreakpoint pendingFileLineBreakpoint)
+                    if (pendingBreakpoint is DkmPendingFileLineBreakpoint)
                     {
+                        var pendingFileLineBreakpoint = pendingBreakpoint as DkmPendingFileLineBreakpoint;
                         var sourcePosition = pendingFileLineBreakpoint.GetCurrentSourcePosition();
 
                         if (sourcePosition != null)
@@ -3566,7 +3590,8 @@ namespace LuaDkmDebuggerComponent
 
                     log.Debug($"Adding script {scriptName} to symbol store of Lua state {stateAddress} (with content)");
 
-                    string resolvedPath = TryFindSourcePath(process.Path, processData, scriptName, scriptContent, false, out string loadStatus);
+                    string loadStatus;
+                    string resolvedPath = TryFindSourcePath(process.Path, processData, scriptName, scriptContent, false, out loadStatus);
 
                     if (resolvedPath != null)
                     {
@@ -3889,7 +3914,8 @@ namespace LuaDkmDebuggerComponent
                         processData.skipNextInternalCreate = false;
                     }
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     ulong? stateAddress = EvaluationHelpers.TryEvaluateAddressExpression($"L", inspectionSession, thread, frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
@@ -3923,7 +3949,8 @@ namespace LuaDkmDebuggerComponent
                         log.Debug("Detected raw Lua thread destruction");
                     }
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     ulong? stateAddress = EvaluationHelpers.TryEvaluateAddressExpression($"L", inspectionSession, thread, frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
@@ -3952,7 +3979,8 @@ namespace LuaDkmDebuggerComponent
 
                     processData.skipNextRawLoad = true;
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     ulong? stateAddress = EvaluationHelpers.TryEvaluateAddressExpression($"L", inspectionSession, thread, frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
@@ -3977,7 +4005,8 @@ namespace LuaDkmDebuggerComponent
 
                             log.Debug($"Adding script {scriptName} to symbol store of Lua state {stateAddress.Value} (without content)");
 
-                            string resolvedPath = TryFindSourcePath(process.Path, processData, scriptName, null, false, out string loadStatus);
+                            string loadStatus;
+                            string resolvedPath = TryFindSourcePath(process.Path, processData, scriptName, null, false, out loadStatus);
 
                             if (resolvedPath != null)
                             {
@@ -4036,7 +4065,8 @@ namespace LuaDkmDebuggerComponent
 
                     processData.skipNextRawLoad = true;
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     ulong? stateAddress = EvaluationHelpers.TryEvaluateAddressExpression($"L", inspectionSession, thread, frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
@@ -4079,7 +4109,8 @@ namespace LuaDkmDebuggerComponent
 
                     log.Debug("Detected raw Lua script load");
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     ulong? isStringReader = EvaluationHelpers.TryEvaluateAddressExpression($"reader == getS", inspectionSession, thread, frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
@@ -4166,7 +4197,8 @@ namespace LuaDkmDebuggerComponent
 
                     processData.breakpointLuaThrow.Disable();
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     ulong? messageAddress = EvaluationHelpers.TryEvaluateAddressExpression($"L->top - 1", inspectionSession, thread, frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
@@ -4195,7 +4227,8 @@ namespace LuaDkmDebuggerComponent
                     // Acknowledge signal
                     DebugHelpers.TryWriteUintVariable(process, processData.helperAsyncBreakCodeAddress, 0u);
 
-                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out DkmStackWalkFrame frame);
+                    DkmStackWalkFrame frame;
+                    var inspectionSession = EvaluationHelpers.CreateInspectionSession(process, thread, data, out frame);
 
                     if (code == 1)
                     {
