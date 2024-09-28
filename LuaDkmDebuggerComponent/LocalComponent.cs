@@ -163,11 +163,17 @@ namespace LuaDkmDebuggerComponent
     // DkmWorkerProcessConnection is only available from VS 2019, so we need an indirection to avoid the type load error
     internal class LuaWorkerConnectionWrapper : DkmDataItem
     {
+#if !VS2015
         public DkmWorkerProcessConnection workerConnection = null;
+#endif
 
         public DkmInspectionContext CreateInspectionSession(DkmInspectionSession inspectionSession, DkmRuntimeInstance runtimeInstance, DkmThread thread, DkmEvaluationFlags flags, DkmLanguage language)
         {
+#if !VS2015
             return DkmInspectionContext.Create(inspectionSession, runtimeInstance, thread, 200, flags, DkmFuncEvalFlags.None, 10, language, null, null, DkmCompiledVisualizationDataPriority.None, null, workerConnection);
+#else
+            return null;
+#endif
         }
     }
 
@@ -286,10 +292,14 @@ namespace LuaDkmDebuggerComponent
 
         string GetInstructionMethodNameFromBasicSymbolInfo(DkmStackWalkFrame input)
         {
+#if !VS2015
             if (input.BasicSymbolInfo != null)
                 return input.BasicSymbolInfo.MethodName;
 
             return null;
+#else
+            throw new Exception();
+#endif
         }
 
         string GetFrameMethodName(LuaLocalProcessData processData, DkmStackWalkFrame input)
@@ -337,6 +347,7 @@ namespace LuaDkmDebuggerComponent
 
         void UpdateEvaluationHelperWorkerConnection(DkmProcess process)
         {
+#if !VS2015
             LuaWorkerConnectionWrapper wrapper = process.GetDataItem<LuaWorkerConnectionWrapper>();
 
             // If available and haven't been set yet, use local symbols worker connection for faster expression evaluation
@@ -351,6 +362,9 @@ namespace LuaDkmDebuggerComponent
                     wrapper.workerConnection = workerConnection;
                 }
             }
+#else
+            throw new Exception();
+#endif
         }
 
         bool OnFoundLuaCallStack(DkmProcess process, LuaLocalProcessData processData, DkmStackContext stackContext, DkmStackWalkFrame input)
@@ -2780,12 +2794,16 @@ namespace LuaDkmDebuggerComponent
 
         DkmCustomMessage GetLuaLocations(DkmProcess process, DkmNativeModuleInstance nativeModuleInstance)
         {
+#if !VS2015
             DkmWorkerProcessConnection workerConnection = DkmWorkerProcessConnection.GetLocalSymbolsConnection();
 
             if (workerConnection != null)
                 return DkmCustomMessage.Create(process.Connection, process, MessageToLocalWorker.guid, MessageToLocalWorker.fetchLuaSymbols, nativeModuleInstance.UniqueId.ToByteArray(), null, null, workerConnection).SendLower();
 
             return null;
+#else
+            throw new Exception();
+#endif
         }
 
         void SendStatusMessage(DkmProcess process, int id, string content)

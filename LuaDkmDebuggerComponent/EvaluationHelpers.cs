@@ -371,7 +371,23 @@ namespace LuaDkmDebuggerComponent
 
             if (result is DkmSuccessEvaluationResult success)
             {
-                var renamedResult = DkmSuccessEvaluationResult.Create(success.InspectionContext, success.StackFrame, name, success.FullName, success.Flags, success.Value, success.EditableValue, success.Type, success.Category, success.Access, success.StorageType, success.TypeModifierFlags, success.Address, success.CustomUIVisualizers, success.ExternalModules, success.RefreshButtonText, null);
+                DkmSuccessEvaluationResult renamedResult;
+#if !VS2015
+                bool hasRefreshButtonText = true;
+                try
+                {
+                    // Only available from VS 2017
+                    var _ = success.RefreshButtonText;
+                }
+                catch (Exception)
+                {
+                    hasRefreshButtonText = false;
+                }
+                if (hasRefreshButtonText)
+                renamedResult = DkmSuccessEvaluationResult.Create(success.InspectionContext, success.StackFrame, name, success.FullName, success.Flags, success.Value, success.EditableValue, success.Type, success.Category, success.Access, success.StorageType, success.TypeModifierFlags, success.Address, success.CustomUIVisualizers, success.ExternalModules, success.RefreshButtonText, null);
+                else
+#endif
+                renamedResult = DkmSuccessEvaluationResult.Create(success.InspectionContext, success.StackFrame, name, success.FullName, success.Flags, success.Value, success.EditableValue, success.Type, success.Category, success.Access, success.StorageType, success.TypeModifierFlags, success.Address, success.CustomUIVisualizers, success.ExternalModules, null);
 
                 result.Close();
 
